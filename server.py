@@ -26,7 +26,6 @@ def receive_message(client_socket):
             message_header.decode("utf-8").strip())  # otherwise get the message (always have to decode)
         return {"header": message_header, "data": client_socket.recv(message_length)} #returning a dictionary where the values are header, data
     except:
-
         return False
 
 
@@ -50,7 +49,7 @@ while True:
             print(
                 f"Accepted new connection from {ip}: {client_port} username: {user['data'].decode('utf-8')}")
         else:
-
+            #key = DesKey(b"some Key")
             message = receive_message(notified_socket)
 
             print(message['data'].decode('utf-8'))
@@ -61,15 +60,14 @@ while True:
                 del clients[notified_socket]
                 continue
 
-
             user = clients[notified_socket]
 
             print(f"Received message from {user['data'].decode('utf-8')}: {message['data'].decode('utf-8')}")
-            print(len(user['header'])) #b'1         '
+            #print(len(user['header'])) #b'1         '
 
-            print(user['data']) #b'B'
+            #print(user['data']) #b'B'
 
-            print(message['header']) #b' 5        '
+            #print(message['header']) #b' 5        '
 
             # print(len(num))
             print(message['data']) #b'hello'
@@ -78,7 +76,7 @@ while True:
 
             for client_socket in clients:
                 if client_socket != notified_socket:
-                    print(user['header'] + user['data'] + message['header'] + message['data'])
+                    print(user['header'] + user['data'])
                     client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
 
             for notified_socket in exception_sockets:
