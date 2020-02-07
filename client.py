@@ -59,7 +59,7 @@ while True:
             decoded = key.decrypt(message, padding=True)
             last = decoded.decode()
 
-            print(f"{username} > {last}")
+            print(f" Username: {username}\n key: {key}\n Encrypted: {message}\n Decrypted: {last}\n")
 
     except IOError as e:
         if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
