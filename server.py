@@ -1,9 +1,9 @@
-#server
 import socket
 import select
-from des import DesKey
+#server
 
-HEADER_LENGTH = 30
+
+HEADER_LENGTH = 10
 IP = "127.0.0.1" #dummy ipaddress"
 PORT = 1234 #dummy port
 
@@ -22,7 +22,7 @@ def receive_message(client_socket):
         message_header = client_socket.recv(HEADER_LENGTH) #first receive what ever the header length is
         if not len(message_header): #if not recieve any data then the client close the connection
             return False
-        message_length = int(message_header.decode("utf-8").strip())  # otherwise get the message (always have to decode)
+        message_length = int(message_header.decode("utf-8").strip()) #otherwise get the message (always have to decode)
         return {"header": message_header, "data": client_socket.recv(message_length)} #returning a dictionary where the values are header, data
     except:
         return False
@@ -37,7 +37,6 @@ while True:
             client_socket, client_address = server_socket.accept()
 
             user = receive_message(client_socket) #receive message for current client socket
-
             if user is False: #disconnceted
                 continue
 
@@ -46,13 +45,9 @@ while True:
             ip = client_address[0] #client ip address
             client_port = client_address[1] #port number
             print(
-                f"Accepted new connection from {ip}: {client_port} username: {user['data'].decode('utf-8')}")
+                f"Accepted new connection from {ip}: {client_port} username:{user['data'].decode('utf-8')}")
         else:
-            #key = DesKey(b"some Key")
             message = receive_message(notified_socket)
-
-            print(message['data'])
-
             if message is False:
                 print(f"Closed connection from {clients[notified_socket]['data'].decode('utf-8')}")
                 sockets_list.remove(notified_socket)
@@ -62,20 +57,10 @@ while True:
             user = clients[notified_socket]
 
             print(f"Received message from {user['data'].decode('utf-8')}: {message['data']}")
-            #print(len(user['header'])) #b'1         '
-
-            #print(user['data']) #b'B'
-
-            #print(message['header']) #b' 5        '
-
-            # print(len(num))
-            # print(message['data']) #b'hello'
 
             for client_socket in clients:
                 if client_socket != notified_socket:
-                    print(user['header'] + user['data'])
-                    client_socket.send(user['header'] + user['data'] + message['data'])
-
+                    client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
             for notified_socket in exception_sockets:
                 sockets_list.remove(notified_socket)
                 del clients[notified_socket]
