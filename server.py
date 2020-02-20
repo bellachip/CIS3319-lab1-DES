@@ -23,7 +23,7 @@ def receive_message(client_socket):
         if not len(message_header): #if not recieve any data then the client close the connection
             return False
         message_length = int(message_header.decode("utf-8").strip()) #otherwise get the message (always have to decode)
-        return {"header": message_header, "data": client_socket.recv(message_length)} #returning a dictionary where the values are header, data
+        return {"header": message_header, "data": client_socket.recv(message_length), "hash" : client_socket.recv()} #returning a dictionary where the values are header, data
     except:
         return False
 

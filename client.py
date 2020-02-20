@@ -1,9 +1,12 @@
+import base64
+import hmac
 import socket
 import select
 import errno
 import sys
 import des
 from des import DesKey
+import hashlib
 
 HEADER_LENGTH = 10
 IP = "127.0.0.1"
@@ -23,7 +26,9 @@ if choose == "create":
      input_key = input("Create a key: ")
      encoded_key = input_key.encode()
      print(encoded_key)
+
      key = DesKey(encoded_key)
+
      # print(key)
      # f = open("key.txt", 'w')
      # f.write(input_key)
@@ -40,9 +45,17 @@ while True:
 
     if plain:
         new = plain.encode("utf-8")
+        hashkey =bytes("the shared secret key here", "utf-8")
+        #hash
+        hash = hmac.new(hashkey, new, hashlib.sha256)
+        digested_hash = hash.digest()
+        encoded_hash = base64.b64encode(digested_hash)
+
         message = key.encrypt(new, padding=True)
+
         message_header = f"{len(message) :< {HEADER_LENGTH}}".encode("utf-8")
         client_socket.send(message_header + message)
+        client_socket.send(encoded_hash)
     try:
         while True:
             #receive things
@@ -56,8 +69,18 @@ while True:
             message_header = client_socket.recv(HEADER_LENGTH)
             message_length = int(message_header.decode("utf-8").strip())
             message = client_socket.recv(message_length)
+
+            received_hash = client_socket.recv(encoded_hash)
+
+            decoded_hash = received_hash.decode("utf-8")
+
+            print(decoded_hash)
+
+
             decoded = key.decrypt(message, padding=True)
             last = decoded.decode()
+
+
 
             print(f" Username: {username}\n key: {key}\n Encrypted: {message}\n Decrypted: {last}\n")
 
