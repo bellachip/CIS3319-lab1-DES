@@ -20,6 +20,7 @@ clients = {} #clents list for client info
 def receive_message(client_socket):
     try:
         message_header = client_socket.recv(HEADER_LENGTH) #first receive what ever the header length is
+
         if not len(message_header): #if not recieve any data then the client close the connection
             return False
         message_length = int(message_header.decode("utf-8").strip()) #otherwise get the message (always have to decode)
