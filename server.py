@@ -20,10 +20,11 @@ clients = {} #clents list for client info
 def receive_message(client_socket):
     try:
         message_header = client_socket.recv(HEADER_LENGTH) #first receive what ever the header length is
+
         if not len(message_header): #if not recieve any data then the client close the connection
             return False
         message_length = int(message_header.decode("utf-8").strip()) #otherwise get the message (always have to decode)
-        return {"header": message_header, "data": client_socket.recv(message_length), "hash" : client_socket.recv()} #returning a dictionary where the values are header, data
+        return {"header": message_header, "data": client_socket.recv(message_length)} #returning a dictionary where the values are header, data
     except:
         return False
 
@@ -60,7 +61,7 @@ while True:
 
             for client_socket in clients:
                 if client_socket != notified_socket:
-                    client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
+                    client_socket.send(user['header'] + user['data'] + message['header'] + message['data'] + message)
             for notified_socket in exception_sockets:
                 sockets_list.remove(notified_socket)
                 del clients[notified_socket]

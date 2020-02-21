@@ -9,6 +9,7 @@ from des import DesKey
 import hashlib
 
 HEADER_LENGTH = 10
+HASH_LENGTH = 20
 IP = "127.0.0.1"
 PORT = 1234
 
@@ -51,11 +52,9 @@ while True:
         digested_hash = hash.digest()
         encoded_hash = base64.b64encode(digested_hash)
 
-        message = key.encrypt(new, padding=True)
-
         message_header = f"{len(message) :< {HEADER_LENGTH}}".encode("utf-8")
         client_socket.send(message_header + message)
-        client_socket.send(encoded_hash)
+        # client_socket.send(encoded_hash)
     try:
         while True:
             #receive things
@@ -70,8 +69,7 @@ while True:
             message_length = int(message_header.decode("utf-8").strip())
             message = client_socket.recv(message_length)
 
-            received_hash = client_socket.recv(encoded_hash)
-
+            received_hash = client_socket.recv(int(encoded_hash))
             decoded_hash = received_hash.decode("utf-8")
 
             print(decoded_hash)
