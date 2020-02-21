@@ -3,7 +3,7 @@ import select
 #server
 
 
-HEADER_LENGTH = 10
+HEADER_LENGTH = 1024
 IP = "127.0.0.1" #dummy ipaddress"
 PORT = 1234 #dummy port
 
