@@ -1,73 +1,85 @@
-import base64
-import hmac
 import socket
 import select
 import errno
 import sys
 import des
 from des import DesKey
-import hashlib
+import time
 
 HEADER_LENGTH = 1024
 IP = "127.0.0.1"
-PORT = 1234
+PORT =  1234
 
-user_input = input("Client: ")  # asks for user input for identification
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # for streaming data
-client_socket.connect((IP, PORT))  # client program is the one to connect while server binds
-client_socket.setblocking(False)  # sets blocking to FALSE
+idc = 'CIS3319USERID'
+idv = 'CIS3319SERVERID'
+idtgs = 'CIS3319TGSID'
+adc = IP + ':' + str(PORT)
+ts = str(int(time.time()))
 
-user_id = user_input.encode("utf-8")  # always has to translate to uit-8
+request_ticket = idc + '|' + idv + '|'+ ts
+
+
+
+
+user_input = input("Client: ") #asks for user input for identification
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #for streaming data
+client_socket.connect((IP, PORT)) #client program is the one to connect while server binds
+client_socket.setblocking(False) #sets blocking to
+
+
+
+user_id = user_input.encode("utf-8") #always has to translate to uit-8
 username_header = f"{len(user_id):<{HEADER_LENGTH}}".encode("utf-8")
 client_socket.send(username_header + user_id)
-# UI
+
+
+encoded_request_ticket = request_ticket.encode("utf-8")
+message_header = f"{len(encoded_request_ticket) :< {HEADER_LENGTH}}".encode("utf-8")
+client_socket.send(message_header + encoded_request_ticket)
+
+
+
+
+# ticket = client_socket.recv(1024)
+# print(ticket)
+
+
+#UI
 choose = input("Type create to make a new key or press enter to use already created key: ")
 if choose == "create":
-    input_deskey = input("Create a deskey: ")
-    encoded_deskey = input_deskey.encode()
-    print(encoded_deskey)
-    key = DesKey(encoded_deskey)
-    input_hmackey = input("Create a hamc key: ")
-    encoded_hmackey = bytes(input_hmackey, 'utf-8')
-
-    # print(key)
-    # f = open("key.txt", 'w')
-    # f.write(input_key)
-    # f.close()
+     input_key = input("Create a key: ")
+     encoded_key = input_key.encode()
+     print(encoded_key)
+     key = DesKey(encoded_key)
+     # print(key)
+     # f = open("key.txt", 'w')
+     # f.write(input_key)
+     # f.close()
 else:
-    input_deskey = input("Enter existing deskey: ")
-    encoded_deskey = input_deskey.encode()
-    print(encoded_deskey)
-    key = DesKey(encoded_deskey)
-    input_hmackey = input("Enter existing hmac key: ")
-    encoded_hmackey = bytes(input_hmackey, 'utf-8')
+     input_key = input("Enter existing key: ")
+     encoded_key = input_key.encode()
+     print(encoded_key)
+     key = DesKey(encoded_key)
 
-hash_length = 0
-# While connected
+#While connected
 while True:
     plain = input(f"{user_input} > ")
 
     if plain:
         new = plain.encode("utf-8")
-        # hashkey = bytes("hello", "utf-8")
-        # hash
-        hash = hmac.new(encoded_hmackey, new, hashlib.sha256)
-        digested_hash = hash.digest()
-        encoded_hash = base64.b64encode(digested_hash)
-
-        message2 = key.encrypt(new, padding=True)
-        delimeter = bytes("#", "utf-8")
-        # print("Encrypted message")
-        # print(message2)
-
-        message = message2 + delimeter + encoded_hash
-        # print("Message with Hash in bytes")
-        # print(message)
+        message = key.encrypt(new, padding=True)
         message_header = f"{len(message) :< {HEADER_LENGTH}}".encode("utf-8")
         client_socket.send(message_header + message)
     try:
         while True:
-            # receive things
+            #receive things
+            ticket_header = client_socket.recv(HEADER_LENGTH)
+            ticket_length = int(ticket_header.decode("utf-8").strip())
+            ticket = client_socket.recv(ticket_length)
+            print(ticket)
+            # decoded = key.decrypt(t, padding=True)
+
+
             username_header = client_socket.recv(HEADER_LENGTH)
             if not len(username_header):
                 print("connection closed by the server")
@@ -78,25 +90,10 @@ while True:
             message_header = client_socket.recv(HEADER_LENGTH)
             message_length = int(message_header.decode("utf-8").strip())
             message = client_socket.recv(message_length)
-            print("message inside the try in bytes")
-            print(message)
-
-            array = message.split(b'#')
-            HMAC = array[1]
-            encrypted_message = array[0]
-
-            decoded = key.decrypt(encrypted_message, padding=True)
-            hash = hmac.new(encoded_hmackey, decoded, hashlib.sha256)
-            digested_hash = hash.digest()
-            encoded_hash = base64.b64encode(digested_hash)
+            decoded = key.decrypt(message, padding=True)
             last = decoded.decode()
 
-            retval =hmac.compare_digest(encoded_hash, HMAC)
-
-
-
-            print(
-                f" Username: {username}\n Deskey: {key}\n HashKey: {encoded_hmackey}\n HMAC: {HMAC}\n Encrypted: {encrypted_message}\n Decrypted: {last}\n Encoded Hash: {encoded_hash}\n ReturnValueForHash: {retval}\n")
+            print(f" Username: {username}\n key: {key}\n Encrypted: {message}\n Decrypted: {last}\n")
 
     except IOError as e:
         if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
