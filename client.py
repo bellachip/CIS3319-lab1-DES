@@ -64,6 +64,10 @@ else:
 #While connected
 while True:
     plain = input(f"{user_input} > ")
+    ticket_header = client_socket.recv(HEADER_LENGTH)
+    ticket_length = int(ticket_header.decode("utf-8").strip())
+    ticket = client_socket.recv(ticket_length)
+    print(ticket)
 
     if plain:
         new = plain.encode("utf-8")
@@ -73,10 +77,7 @@ while True:
     try:
         while True:
             #receive things
-            ticket_header = client_socket.recv(HEADER_LENGTH)
-            ticket_length = int(ticket_header.decode("utf-8").strip())
-            ticket = client_socket.recv(ticket_length)
-            print(ticket)
+
             # decoded = key.decrypt(t, padding=True)
 
 
@@ -93,7 +94,7 @@ while True:
             decoded = key.decrypt(message, padding=True)
             last = decoded.decode()
 
-            print(f" Username: {username}\n key: {key}\n Encrypted: {message}\n Decrypted: {last}\n")
+            print(f" Username: {username}\n key: {key}\n Encrypted: {message}\n Decrypted: {last}\n ticket: {ticket}")
 
     except IOError as e:
         if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:

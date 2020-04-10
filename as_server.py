@@ -90,7 +90,7 @@ while True:
             # encoded_ticket = encrypted_E_kc.encode('utf-8')
             # encoded_E_kc = E_kc.encode('utf-8')
 
-            client_socket.send(encoded_ticket)
+            client_socket.send(string_ticket)
 
 
 
@@ -110,6 +110,7 @@ while True:
 
             for client_socket in clients:
                 if client_socket != notified_socket:
+                    client_socket.send('hello')
                     client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
             for notified_socket in exception_sockets:
                 sockets_list.remove(notified_socket)
