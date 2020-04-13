@@ -34,11 +34,9 @@ client_socket.send(username_header + user_id)
 
 
 encoded_request_ticket = request_ticket.encode("utf-8")
+print(encoded_request_ticket)
 message_header = f"{len(encoded_request_ticket) :< {HEADER_LENGTH}}".encode("utf-8")
 client_socket.send(message_header + encoded_request_ticket)
-
-
-
 
 # ticket = client_socket.recv(1024)
 # print(ticket)
@@ -66,7 +64,7 @@ while True:
     plain = input(f"{user_input} > ")
     ticket_header = client_socket.recv(HEADER_LENGTH)
     ticket_length = int(ticket_header.decode("utf-8").strip())
-    ticket = client_socket.recv(ticket_length)
+    ticket = client_socket.recv(ticket_length).decode("utf-8")
     print(ticket)
 
     if plain:
@@ -74,6 +72,8 @@ while True:
         message = key.encrypt(new, padding=True)
         message_header = f"{len(message) :< {HEADER_LENGTH}}".encode("utf-8")
         client_socket.send(message_header + message)
+
+
     try:
         while True:
             #receive things
