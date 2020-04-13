@@ -16,17 +16,26 @@ idtgs = 'CIS3319TGSID'
 adc = IP + ':' + str(PORT)
 ts = str(int(time.time()))
 
+
+pre_sharedkey_tgs = 'some key'
+encoded_key_tgs = pre_sharedkey_tgs.encode()
+key_tgs = DesKey(encoded_key_tgs)
+
+pre_sharedkey_ctgs ='abcd eft'
+encoded_key_ctgs = pre_sharedkey_ctgs.encode()
+key_ctgs = DesKey(encoded_key_ctgs)
+
+pre_sharedkey_c ='abcd efg'
+encoded_key_c = pre_sharedkey_c.encode()
+key_c = DesKey(encoded_key_c)
+
+
 request_ticket = idc + '|' + idv + '|'+ ts
-
-
-
 
 user_input = input("Client: ") #asks for user input for identification
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #for streaming data
 client_socket.connect((IP, PORT)) #client program is the one to connect while server binds
 client_socket.setblocking(False) #sets blocking to
-
-
 
 user_id = user_input.encode("utf-8") #always has to translate to uit-8
 username_header = f"{len(user_id):<{HEADER_LENGTH}}".encode("utf-8")
@@ -59,13 +68,39 @@ else:
      print(encoded_key)
      key = DesKey(encoded_key)
 
+
+ticket_header = client_socket.recv(HEADER_LENGTH)
+
+ticket_length = int(ticket_header)
+#ticket_length = int(ticket_header.decode("utf-8").strip())
+
+ticket_message = client_socket.recv(ticket_length)
+print(ticket_message) #encrypted ticket
+decoded_ticket = key_c.decrypt(ticket_message, padding=True)
+print(decoded_ticket.decode('utf-8').split("|")[3])
+encrypted_ticket_tgs = decoded_ticket.decode('utf-8').split("|")[3]
+authenticator = user_input
+
+string_step3 = idv + "|" + authenticator + "|"
+
+step3_send = string_step3.encode("utf-8") + encrypted_ticket_tgs.encode("utf-8")
+print(step3_send)
+step3_send_header = f"{len(step3_send) :< {HEADER_LENGTH}}".encode("utf-8")
+client_socket.send(step3_send_header + step3_send)
+
+# ticket_array = ticket_message.split("|")
+# print(ticket_array)
+
+# tgs_request_ticket = idv + "|" + ticket_array[3]
+
+
 #While connected
 while True:
+
     plain = input(f"{user_input} > ")
-    ticket_header = client_socket.recv(HEADER_LENGTH)
-    ticket_length = int(ticket_header.decode("utf-8").strip())
-    ticket = client_socket.recv(ticket_length).decode("utf-8")
-    print(ticket)
+
+    # ticket = client_socket.recv(ticket_length).decode("utf-8")
+    # print(ticket)
 
     if plain:
         new = plain.encode("utf-8")

@@ -13,9 +13,13 @@ lifetime2 = 60
 lifetime4 = 86400
 adc = IP + ':' + str(PORT)
 ts2 = str(int(time.time()))
-pre_sharedkey = 'some key'
-encoded_key = pre_sharedkey.encode()
-key_tgs = DesKey(encoded_key)
+pre_sharedkey_tgs = 'some key'
+encoded_key_tgs = pre_sharedkey_tgs.encode()
+key_tgs = DesKey(encoded_key_tgs)
+
+pre_sharedkey_ctgs ='abcd eft'
+encoded_key_ctgs = pre_sharedkey_ctgs.encode()
+key_ctgs = DesKey(encoded_key_ctgs)
 
 pre_sharedkey_c ='abcd efg'
 encoded_key_c = pre_sharedkey_c.encode()
@@ -73,24 +77,46 @@ while True:
             encoded = client_auth.get('data')
             decoded = encoded.decode('utf-8')
             request_ts_array = decoded.split("|") #array of idc, id_tgs, ts
+            #recieves as decoded regular string
             idc = request_ts_array[0]
             id_tgs = request_ts_array[1]
             ts = request_ts_array[2]
 
+            print("Received (1) C --> AS: " + "ID_c: " + idc + "ID_tgs: " + id_tgs + "TS1: " + ts)
+
+
             #STEP 2
-            string_ticket = str(key_tgs) + str(idc) + str(adc) + str(id_tgs) + str(ts2) + str(lifetime2)
+
+            string_ticket = pre_sharedkey_tgs + idc + adc + id_tgs + ts2 + str(lifetime2)
             encoded_ticket = string_ticket.encode('utf-8')
+            ticket_tgs = key_tgs.encrypt(encoded_ticket, padding=True)
+            print(ticket_tgs)
+            two_a = pre_sharedkey_ctgs + "|" + id_tgs + "|" + ts2 + "|" + str(ticket_tgs)
+            encoded_two_a = two_a.encode('utf-8')
+            encrypted_tix = key_c.encrypt(encoded_two_a, padding=True)
+            print(type(encrypted_tix))
+
             print('\n')
-            print(ts.encode('utf-8'))
+            message_header = f"{len(encrypted_tix) :< {HEADER_LENGTH}}".encode("utf-8")
+            client_socket.send(message_header + encrypted_tix)
+            # client_socket.send(id_tgs.encode('utf-8'))
             print('\n')
-            # ticket_tgs = key_tgs.encrypt(encoded_ticket, padding= True)
+
+            step3_receive = receive_message(client_socket)
+
+            encoded_step3_receive = step3_receive.get('data')
+            decoded_step3_receive = encoded_step3_receive.decode('utf-8')
+            decoded_step3_receive_array = decoded_step3_receive.split("|")
+            print(decoded_step3_receive_array[2].decode('utf-8'))
+
+            # ticket_tgs = key_tgs.encrypt(encoded_ticket, padding= True
 
             # E_kc = str(key_tgs) + str(id_tgs) + str(ts2 )+ str(lifetime2) + str(ticket_tgs)
             # encrypted_E_kc = key_c.encrypt(E_kc, padding=True)
             # encoded_ticket = encrypted_E_kc.encode('utf-8')
             # encoded_E_kc = E_kc.encode('utf-8')
 
-            client_socket.send(ts.encode('utf-8'))
+
 
 
 
