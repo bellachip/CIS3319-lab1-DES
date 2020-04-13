@@ -107,7 +107,13 @@ while True:
             encoded_step3_receive = step3_receive.get('data')
             decoded_step3_receive = encoded_step3_receive.decode('utf-8')
             decoded_step3_receive_array = decoded_step3_receive.split("|")
-            print(decoded_step3_receive_array[2].decode('utf-8'))
+            encr = decoded_step3_receive_array[2]
+
+            print(decoded_step3_receive_array[2].encode('utf-8'))
+
+            #ab = f"{len(decoded_step3_receive_array[2]) :< {HEADER_LENGTH}}".encode("utf-8")
+
+            # print(key_tgs.decrypt(decoded_step3_receive_array[2].encode('utf-8'), padding=True))
 
             # ticket_tgs = key_tgs.encrypt(encoded_ticket, padding= True
 

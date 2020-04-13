@@ -77,8 +77,10 @@ ticket_length = int(ticket_header)
 ticket_message = client_socket.recv(ticket_length)
 print(ticket_message) #encrypted ticket
 decoded_ticket = key_c.decrypt(ticket_message, padding=True)
-print(decoded_ticket.decode('utf-8').split("|")[3])
+
+# print(decoded_ticket.decode('utf-8').split("|")[3])
 encrypted_ticket_tgs = decoded_ticket.decode('utf-8').split("|")[3]
+print(type(encrypted_ticket_tgs))
 authenticator = user_input
 
 string_step3 = idv + "|" + authenticator + "|"
