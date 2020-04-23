@@ -79,13 +79,14 @@ print(ticket_message) #encrypted ticket
 decoded_ticket = key_c.decrypt(ticket_message, padding=True)
 
 # print(decoded_ticket.decode('utf-8').split("|")[3])
-encrypted_ticket_tgs = decoded_ticket.decode('utf-8').split("|")[3]
-print(type(encrypted_ticket_tgs))
+encrypted_ticket_tgs = decoded_ticket.decode('utf-8').split("|")
+print("Received From Server Ticket-tgs" + "\n Shared Key: " + encrypted_ticket_tgs[0] + " \nID_tgs: " +  encrypted_ticket_tgs[1] + " \nTS2: "+ encrypted_ticket_tgs[2] + "\n Lifetime2: " + encrypted_ticket_tgs[3] + " \nTicket_tgs: " + encrypted_ticket_tgs[4] )
+
 authenticator = user_input
 
 string_step3 = idv + "|" + authenticator + "|"
 
-step3_send = string_step3.encode("utf-8") + encrypted_ticket_tgs.encode("utf-8")
+step3_send = string_step3.encode("utf-8") + encrypted_ticket_tgs[4].encode("utf-8")
 print(step3_send)
 step3_send_header = f"{len(step3_send) :< {HEADER_LENGTH}}".encode("utf-8")
 client_socket.send(step3_send_header + step3_send)

@@ -91,7 +91,7 @@ while True:
             encoded_ticket = string_ticket.encode('utf-8')
             ticket_tgs = key_tgs.encrypt(encoded_ticket, padding=True)
             print(ticket_tgs)
-            two_a = pre_sharedkey_ctgs + "|" + id_tgs + "|" + ts2 + "|" + str(ticket_tgs)
+            two_a = pre_sharedkey_ctgs + "|" + id_tgs + "|" + ts2 + "|" + str(lifetime2) + "|" + str(ticket_tgs)
             encoded_two_a = two_a.encode('utf-8')
             encrypted_tix = key_c.encrypt(encoded_two_a, padding=True)
             print(type(encrypted_tix))
