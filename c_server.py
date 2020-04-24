@@ -4,7 +4,10 @@ import des
 from des import DesKey
 import time
 #server
-
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.PublicKey import RSA
+from rsa import key, common, encrypt
 
 HEADER_LENGTH = 1024
 IP = "127.0.0.1" #dummy ipaddress"
@@ -13,21 +16,27 @@ lifetime2 = 60
 lifetime4 = 86400
 adc = IP + ':' + str(PORT)
 ts2 = str(int(time.time()))
-pre_sharedkey_tgs = 'some key'
-encoded_key_tgs = pre_sharedkey_tgs.encode()
-key_tgs = DesKey(encoded_key_tgs)
 
-pre_sharedkey_ctgs ='abcd eft'
-encoded_key_ctgs = pre_sharedkey_ctgs.encode()
-key_ctgs = DesKey(encoded_key_ctgs)
+id_s = 'ID-Server'
 
-pre_sharedkey_c ='abcd efg'
-encoded_key_c = pre_sharedkey_c.encode()
-key_c = DesKey(encoded_key_c)
+
+#S registers with the certificate authroity CA to obtain its own public/private keys and certificate
+# the message is encrypted with CA's public key such thatt only CA can decrypt the message
+#The message includes a temporary DES key Ktmpl for CAA to ecrypt the response message/
+#This is necessary because the response contains the private key for S, which is very sensitive.
 
 
 
+(pub_key, priv_key) = key.newkeys(256)
 
+CA = {'id_ca': 'ID_CA', 'pk_ca': pub_key, 'sk_ca': priv_key}
+
+temp_key ='some key'
+encoded_key_c = temp_key.encode()
+key_tmp1 = DesKey(encoded_key_c)
+
+message = (key_tmp1 + id_s + ts2).encode("urf-8")
+crypto = encrypt(message, pub_key) #ecrypted tempraroy key + ids + ts1
 
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #creating socket
@@ -38,6 +47,7 @@ server_socket.listen() #listend
 sockets_list = [server_socket] #for client list
 
 clients = {} #clents list for client info
+
 
 #recienve message from any client socket
 def receive_message(client_socket):
